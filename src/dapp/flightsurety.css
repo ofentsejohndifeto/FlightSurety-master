@@ -1,42 +1,87 @@
 body {
-    background-image: url('flight.jpg'); /* Source: iStockPhoto */
+    background-image: url("flight.jpg"); /* Source: iStockPhoto */
     background-repeat: no-repeat;
     background-size: cover;
-}
-
-.container {
+  }
+  
+  .container {
     margin-top: 400px;
     background-color: #000;
     opacity: 0.9;
     color: #fff;
     padding: 40px;
-}
-
-.top-20 {
+  }
+  
+  .top-20 {
     margin-top: 20px;
-}
-
-h5 {
+  }
+  
+  h5 {
     color: #999999;
-}
-
-section {
+  }
+  
+  section {
     margin-bottom: 50px;
-}
-
-.field {
+  }
+  
+  .field {
     font-weight: bold;
     text-align: right;
-}
-
-.field-value {
+  }
+  
+  .field-value {
     color: #0e7fa8;
-}
-
-label.form {
+  }
+  
+  label.form {
     font-size: 14px;
     margin-right: 20px;
-}
-input {
+  }
+  input {
     margin-right: 30px;
-}
+  }
+  
+  .card {
+    display: flex;
+    flex-direction: row;
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .flight {
+    color: #000;
+    margin: 0px;
+  }
+  
+  .flight p {
+    margin: 0px;
+  }
+  
+  #spinner {
+    display: none;
+    border: 16px solid #f3f3f3;
+    border-top: 16px solid #3498db;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  #message-box {
+    color: black;
+    font-weight: bold;
+    background-color: lightyellow;
+  }
