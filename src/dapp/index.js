@@ -9,6 +9,7 @@ import {
   unixTimestamp,
 } from "./utils.js";
 
+(async () => {
 const accounts = await window.ethereum.request({
   method: "eth_requestAccounts",
 });
@@ -125,7 +126,6 @@ function registerEventListeners(contract) {
   });
 }
 
-(async () => {
   let contract = new Contract("localhost");
 
   await contract.initialize();
@@ -138,7 +138,7 @@ function registerEventListeners(contract) {
   ]);
 
   // Check if user is registered as a passenger
-  const isRegistered = await contract.isRegisteredPassenger(account);
+  const isRegistered = await contract.isPassengerRegistered(account);
 
   // Register as passenger and submit to oracles event listeners
   registerEventListeners(contract);

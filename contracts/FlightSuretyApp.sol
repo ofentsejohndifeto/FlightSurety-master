@@ -27,12 +27,15 @@ contract FlightSuretyApp {
     address private contractOwner;          // Account used to deploy contract
     ABIFlightSuretyData private flightSuretyData;
 
+    address[] private registeredOracles;
+
     struct Flight {
         bool isRegistered;
         uint8 statusCode;
         uint256 updatedTimestamp;        
         address airline;
     }
+
     mapping(bytes32 => Flight) private flights;
 
     mapping(bytes32 => bytes32) private flightKeys; // maps keys to look up fllight
@@ -88,7 +91,7 @@ contract FlightSuretyApp {
 
     function isOperational() 
                             public 
-                            pure 
+                            view
                             returns(bool) 
     {
         return flightSuretyData.isOperational(); // Modify to call data contract's status
@@ -97,7 +100,7 @@ contract FlightSuretyApp {
     function isPassengerRegistered(
         address _passenger
     ) public view returns (bool) {
-        return flightSuretyData.isRegisteredPassenger(_passenger);
+        return flightSuretyData.isPassengerRegistered(_passenger);
     }
 
     /**
@@ -172,11 +175,11 @@ contract FlightSuretyApp {
                                 address airline
                             )
                             external
-                            pure
+                            view
                             returns(bool success, uint256 votes)
     {
         (success, votes) = flightSuretyData.registerAirline(
-            _airline,
+            airline,
             msg.sender
         );
         return (success, 0);
@@ -188,7 +191,7 @@ contract FlightSuretyApp {
      *
      */
     function registerFlight(
-        string memory _flight,
+        string _flight,
         uint256 _timestamp
     ) external {
         require(
@@ -214,7 +217,8 @@ contract FlightSuretyApp {
             flightSuretyData.isPassenger(msg.sender),
             "You are not a passenger"
         );
-        flightSuretyData.buy{value: msg.value}(_flightKey, msg.sender);
+        flightSuretyData.buy.value(msg.value)(_flightKey, msg.sender);
+
     }
 
     /**
@@ -232,7 +236,7 @@ contract FlightSuretyApp {
      * @dev Function called by the airline to submit their initial funding for the contract
      */
     function fund() external payable {
-        flightSuretyData.fund{value: msg.value}(msg.sender);
+        flightSuretyData.fund.value(msg.value)(msg.sender);
     }
 
     
@@ -263,7 +267,7 @@ contract FlightSuretyApp {
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(
         address _airline,
-        string memory _flight,
+        string _flight,
         uint256 _timestamp
     ) external {
         uint8 index = getRandomIndex(msg.sender);
@@ -368,7 +372,7 @@ contract FlightSuretyApp {
                         (
                             uint8 index,
                             address airline,
-                            string memory flight,
+                            string flight,
                             uint256 timestamp,
                             uint8 statusCode
                         )
@@ -457,7 +461,7 @@ contract FlightSuretyApp {
 }   
 
 // Interface with data contract
-interface IFlightSuretyData {
+interface ABIFlightSuretyData {
     function setAppContract
                             (
                                 address _flightSuretyApp
@@ -487,11 +491,11 @@ interface IFlightSuretyData {
                             (
                             ) external view returns (bool);
 
-    function isRegisteredPassenger(
+    function isPassengerRegistered(
                                     address _passenger
                                   ) external view returns (bool);
 
-    function isRegisteredAirline(
+    function isAirlineRegistered(
                                     address airline
                                 ) external view returns (bool);
 
@@ -502,7 +506,7 @@ interface IFlightSuretyData {
     function creditInsurers(
                                 bytes32 _flightKey,
                                 address _airline,
-                                string memory _flight
+                                string _flight
                            ) external;
 
     function fund(

@@ -11,7 +11,7 @@
     "test": "truffle test ./test/flightSurety.js",
     "dapp": "webpack-dev-server --mode development --config webpack.config.dapp.js",
     "dapp:prod": "webpack --mode production  --config webpack.config.dapp.js",
-    "server": "rm -rf ./build/server && webpack --config webpack.config.server.js"
+    "server": "webpack --config webpack.config.server.js"
   },
   "author": "Nik Kalyani <nik@kalyani.com> https://www.kalyani.com",
   "devDependencies": {
@@ -37,6 +37,7 @@
     "style-loader": "^0.23.1",
     "superstatic": "6.0.3",
     "truffle": "5.0.2",
+    "uglifyjs-webpack-plugin": "^2.2.0",
     "web3": "1.5.1",
     "webpack": "^4.35.2",
     "webpack-cli": "^3.3.6",

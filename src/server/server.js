@@ -19,17 +19,20 @@ let flightSuretyData = new web3.eth.Contract(
   config.dataAddress
 );
 
-// Get a list of available accounts
-const accounts = await web3.eth.getAccounts();
+const app = express();
 
-// Available accounts that can be used
-const oracles = accounts.slice(0, 20);
+async function startServer() {
+  // Get a list of available accounts
+  const accounts = await web3.eth.getAccounts();
+
+  // Available accounts that can be used
+  const oracles = accounts.slice(0, 20);
 
 //******************************************************************************
 //                           ORACLE REGISTRATION
 //******************************************************************************
 
-async function registerOracles() {
+  async function registerOracles() {
   try {
     // Retrieving registration fee from contract
     const registrationFee = await flightSuretyApp.methods
@@ -51,10 +54,10 @@ async function registerOracles() {
   }
 }
 
-(async () => {
+
   // Register oracles when server starts
   await registerOracles();
-})();
+
 
 //******************************************************************************
 //                             EVENT LISTENERS
@@ -92,7 +95,7 @@ flightSuretyData.events.InsuranceBought(
   }
 );
 
-flightSuretyData.events.InsureesCredited(
+flightSuretyData.events.InsurersCredited(
   {
     fromBlock: 0,
   },
@@ -165,6 +168,7 @@ app.get("/api", (req, res) => {
     message: "An API for use with your Dapp!",
   });
 });
+}
 
 // const port = 3000;
 // app.listen(port, () => console.log(`Listening on port ${port}`));

@@ -1,9 +1,11 @@
-const webpack = require('webpack')
-const path = require('path')
-const nodeExternals = require('webpack-node-externals')
-const StartServerPlugin = require('start-server-webpack-plugin')
+const webpack = require('webpack');
+const path = require('path');
+const nodeExternals = require('webpack-node-externals');
+const StartServerPlugin = require('start-server-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {
+    mode: 'development', // or 'production
     entry: [
         'webpack/hot/poll?1000',
         './src/server/index'
@@ -20,6 +22,19 @@ module.exports = {
             exclude: /node_modules/
         }]
     },
+    optimization: {
+        minimizer: [
+            new UglifyJsPlugin({
+                parallel: true,
+                sourceMap: true,
+                uglifyOptions: {
+                    compress: {
+                        inline: false,
+                    },
+                },
+            }),
+        ],
+    },
     plugins: [
         new StartServerPlugin('server.js'),
         new webpack.NamedModulesPlugin(),
@@ -35,4 +50,4 @@ module.exports = {
         path: path.join(__dirname, 'prod/server'),
         filename: 'server.js'
     }
-}
+};

@@ -1,56 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <title>FlightSurety</title>
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
-  </head>
 
-  <body>
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-      <a class="navbar-brand" href="#">FlightSurety</a>
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-toggle="collapse"
-        data-target="#navbarsExampleDefault"
-        aria-controls="navbarsExampleDefault"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
-    </nav>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>FlightSurety</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <style>
+    body {
+      padding-top: 60px;
+    }
+
+    .container {
+      margin-top: 30px;
+    }
+
+    #message-box {
+      display: none;
+    }
+
+    #display-wrapper {
+      margin-top: 20px;
+    }
+
+    #register-passenger,
+    #submit-oracle,
+    #buy-insurance,
+    #request-status {
+      margin-right: 10px;
+    }
+
+    #flight-number {
+      margin-right: 10px;
+    }
+
+    #spinner {
+      margin-top: 20px;
+    }
+
+    #flight-card-container {
+      margin-top: 20px;
+    }
+
+    .center-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #flight-status {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <a class="navbar-brand" href="#">FlightSurety</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+      aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  </nav>
+  <br />
+  <br />
+  <!-- Alert Div for Displaying Messages -->
+  <main class="container">
+    <div id="display-wrapper"></div>
+    <div id="message-box" class="alert"></div>
+    <div class="row center-row">
+      <button class="btn btn-primary" id="register-passenger">Register Passenger</button>
+      <button class="btn btn-primary" id="buy-insurance">Buy Flight Insurance</button>
+      <button class="btn btn-primary" id="request-status">Request Flight Status</button>
+    </div>
     <br />
+    <div class="row center-row">
+      <label class="form">Flight</label>
+      <input type="text" id="flight-number" />
+      <button class="btn btn-primary" id="submit-oracle">Submit to Oracles</button>
+    </div>
     <br />
-    <!-- Alert Div for Displaying Messages -->
-    <main class="container">
-      <div id="display-wrapper" class="top-20"></div>
-      <div id="message-box" class="alert" style="display: none"></div>
-      <div class="row top-20">
-        <button class="btn btn-primary" id="register-passenger">
-          Register as Passenger
-        </button>
-      </div>
-      <br />
-      <div class="row top-20">
-        <label class="form">Flight</label>
-        <input type="text" id="flight-number" />
-        <button class="btn btn-primary" id="submit-oracle">
-          Submit to Oracles
-        </button>
-      </div>
-      <br />
-      <div id="spinner"></div>
-      <div id="flight-card-container"></div>
-    </main>
-  </body>
+    <div id="spinner"></div>
+    <div id="flight-card-container">
+      <textarea id="flight-status" rows="4" class="form-control" placeholder="Flight Status Data" readonly></textarea>
+    </div>
+  </main>
+</body>
+
 </html>

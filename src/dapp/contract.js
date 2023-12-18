@@ -8,9 +8,8 @@ import { unixTimestamp } from "./utils.js";
 export default class Contract {
   constructor(network) {
     let config = Config[network];
-    this.web3 = new Web3(
-      new Web3.providers.WebsocketProvider(config.url.replace("http", "ws"))
-    );
+    this.web3 = this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
+
 
     // Keeps track of the latest information returned from the flight status event emitted by the contract.
     this.flightStatusInfo = null;
@@ -231,7 +230,7 @@ export default class Contract {
   // Event listener for updated credit insurees emitted by contract.
   listenToCreditInsureesInfoEvent(callback) {
     this.flightSuretyData.events
-      .InsurersCredited({
+      .InsureesCredited({
         fromBlock: 0,
       })
       .on("data", (event) => {

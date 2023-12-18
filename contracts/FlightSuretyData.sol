@@ -1,6 +1,7 @@
 pragma solidity ^0.4.25;
 
 //import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "./FlightSuretyApp.sol";
 
 contract FlightSuretyData {
     //using SafeMath for uint256;
@@ -19,13 +20,13 @@ contract FlightSuretyData {
     struct Passenger {
         address passengerAddress;
         uint256 credit;
-        bool isRegistered;
+        bool isPassengerRegistered;
     }
     mapping(address => Passenger) private passengers;
 
     struct Airline {
         address airlineAddress;
-        bool isRegistered;
+        bool isAirlineRegistered;
         bool hasFunded;
     }
     mapping(address => Airline) private airlines;
@@ -201,7 +202,7 @@ contract FlightSuretyData {
     function isPassengerRegistered(
         address _passenger
     ) external view returns (bool) {
-        return passengers[_passenger].isRegistered;
+        return passengers[_passenger].isPassengerRegistered;
     }
 
     /**
@@ -210,7 +211,7 @@ contract FlightSuretyData {
     function isAirlineRegistered(
         address _airline
     ) external view returns (bool) {
-        return airlines[_airline].isRegistered;
+        return airlines[_airline].isAirlineRegistered;
     }
 
     // check to see if passenger is registered but not to any particular flight
@@ -253,7 +254,7 @@ contract FlightSuretyData {
      function registerFirstAirline(address _airline) internal {
         airlines[_airline] = Airline({
             airlineAddress: _airline,
-            isRegistered: true,
+            isAirlineRegistered: true,
             hasFunded: false
         });
         airlineCounter++;
@@ -274,7 +275,7 @@ contract FlightSuretyData {
         passengers[_passengerAddress] = Passenger({
             passengerAddress: _passengerAddress,
             credit: 0,
-            isRegistered: true
+            isPassengerRegistered: true
         });
         emit PassengerRegistered(_passengerAddress);
     }
@@ -304,7 +305,7 @@ contract FlightSuretyData {
         if (airlineCounter <= 4) {
             airlines[_airline] = Airline({
                 airlineAddress: _airline,
-                isRegistered: true,
+                isAirlineRegistered: true,
                 hasFunded: true
             });
             airlineCounter++;
@@ -315,7 +316,7 @@ contract FlightSuretyData {
             return (success, votes);
         } else {
             require(
-                airlines[_caller].isRegistered == true,
+                airlines[_caller].isAirlineRegistered == true,
                 "Caller is not an existing airline"
             );
             bytes32 proposalId = keccak256(
@@ -348,92 +349,7 @@ contract FlightSuretyData {
             if (votes >= airlineCounter / 2) {
                 airlines[_airline] = Airline({
                     airlineAddress: _airline,
-                    isRegistered: true,
-                    hasFunded: true
-                });
-                airlineCounter++;
-                emit ProposalPassed(proposalId);
-                internalAuthorizeCaller(_airline);
-                success = true;
-                emit AirlineRegistered(_airline);
-                return (success, votes);
-            } else {
-                success = false; // Not enough votes yet
-                return (success, votes);
-            }
-        }
-    }
-
-
-   /**
-    * @dev Buy insurance for a flight
-    *
-    */   
-    function registerAirline(
-        address _airline,
-        address _caller
-    )
-        public
-        requireIsOperational
-        isAuthorized
-        returns (bool success, uint256 votes)
-    {
-        require(
-            airlines[_airline].airlineAddress == address(0),
-            "Airline already exists"
-        );
-        require(
-            airlines[_caller].hasFunded == true,
-            "Caller has not funded account"
-        );
-        if (airlineCounter <= 4) {
-            airlines[_airline] = Airline({
-                airlineAddress: _airline,
-                isRegistered: true,
-                hasFunded: true
-            });
-            airlineCounter++;
-            internalAuthorizeCaller(_airline);
-            success = true;
-            votes = 0; // No votes required if there are less than or equal to 4 airlines
-            emit AirlineRegistered(_airline);
-            return (success, votes);
-        } else {
-            require(
-                airlines[_caller].isRegistered == true,
-                "Caller is not an existing airline"
-            );
-            bytes32 proposalId = keccak256(
-                abi.encodePacked("registerAirline", _airline)
-            );
-            Proposal storage proposal = proposals[proposalId];
-
-            // Check if the proposal has expired
-            if (
-                proposal.timestamp != 0 &&
-                (block.timestamp - proposal.timestamp) > voteDuration
-            ) {
-                emit ProposalExpired(proposalId);
-                success = false;
-                votes = proposal.votes;
-                return (success, votes);
-            }
-
-            // If the proposal doesn't exist, create it
-            if (proposal.timestamp == 0) {
-                proposal.timestamp = block.timestamp;
-                emit ProposalCreated(proposalId);
-            }
-
-            // Now we simply record the vote without checking for consensus here
-            vote(proposalId, msg.sender);
-            votes = proposal.votes;
-
-            // check for consensus here
-            if (votes >= airlineCounter / 2) {
-                airlines[_airline] = Airline({
-                    airlineAddress: _airline,
-                    isRegistered: true,
+                    isAirlineRegistered: true,
                     hasFunded: true
                 });
                 airlineCounter++;
@@ -478,7 +394,7 @@ contract FlightSuretyData {
     function creditInsurers(
         bytes32 _flightKey,
         address _airline,
-        string memory _flight
+        string _flight
     ) external isAuthorized {
         for (uint i = 0; i < flightInsurers[_flightKey].length; i++) {
             address passengerAddress = flightInsurers[_flightKey][i];
@@ -515,7 +431,10 @@ contract FlightSuretyData {
         );
         uint totalCredit = passengers[_caller].credit;
         passengers[_caller].credit = 0;
-        payable(_caller).transfer(totalCredit);
+        
+        // Transfer funds to the caller
+        _caller.transfer(totalCredit);
+
         emit PaymentMade(_flightKey, _caller);
     }
 
@@ -542,14 +461,14 @@ contract FlightSuretyData {
     {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
-
-    
+ 
 }
 
 interface ABIFlightSuretyApp {
-    function isFlightRegistered(
-        bytes32 _flightKey
-    ) external view returns (bool);
+    function isPassengerRegistered(address _passenger) external view returns (bool);
 
-    function isDelayedFlight(bytes32 _flightKey) external view returns (bool);
+    function isFlightRegistered(bytes32 _flightKey) external view returns (bool);
+
+    function isFlightDelayed(bytes32 _flightKey) external view returns (bool);
 }
+
