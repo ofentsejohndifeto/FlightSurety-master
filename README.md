@@ -1,3 +1,13 @@
+Here are teh version used in my project so far:
+
+Truffle v5.11.5 (core: 5.11.5)
+Ganache v7.9.1
+Solidity - 0.4.25 (solc-js)
+Node v18.18.2
+Web3.js v1.10.0
+
+Ive noted the UI changes prescribed in the incomplete project review, now if you had to go through my code and compilation, can you point out what rubric requirements I have reached so far. Thank you kindly
+
 # FlightSurety
 
 FlightSurety is a sample application project for Udacity's Blockchain course.
