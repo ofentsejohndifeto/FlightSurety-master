@@ -24,17 +24,26 @@ var Config = async function(accounts) {
     let firstAirline = accounts[1];
 
     let flightSuretyData = await FlightSuretyData.new();
-    let flightSuretyApp = await FlightSuretyApp.new();
+    let flightSuretyApp = await FlightSuretyApp.new(flightSuretyData.address);
+
+    // Authorizing the app contract with data contract
+    await flightSuretyData.authorizeCaller(flightSuretyApp.address);
 
     
-    return {
+    let config = {
         owner: owner,
         firstAirline: firstAirline,
         weiMultiple: (new BigNumber(10)).pow(18),
         testAddresses: testAddresses,
         flightSuretyData: flightSuretyData,
         flightSuretyApp: flightSuretyApp
-    }
+    };
+
+    // Logging the contract addresses for verification
+    console.log("FlightSuretyData address:", flightSuretyData.address);
+    console.log("FlightSuretyApp address:", flightSuretyApp.address);
+
+    return config;
 }
 
 module.exports = {

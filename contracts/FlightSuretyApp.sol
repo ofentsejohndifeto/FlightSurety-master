@@ -236,8 +236,11 @@ contract FlightSuretyApp {
      * @dev Function called by the airline to submit their initial funding for the contract
      */
     function fund() external payable {
-        flightSuretyData.fund.value(msg.value)(msg.sender);
-    }
+    require(msg.value >= 10 ether, "You should fund at least 10 ether");
+
+    // Transfer funds to the Data contract
+    flightSuretyData.fund.value(msg.value)(msg.sender);
+}
 
     
    /**

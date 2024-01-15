@@ -1,26 +1,24 @@
-
 var Test = require('../config/testConfig.js');
-var BigNumber = require('bignumber.js');
 
 contract('Flight Surety Tests', async (accounts) => {
 
-  var config;
-  before('setup contract', async () => {
-    config = await Test.Config(accounts);
-    await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
-  });
-
-  /****************************************************************************************/
-  /* Operations and Settings                                                              */
-  /****************************************************************************************/
-
-  it(`(multiparty) has correct initial isOperational() value`, async function () {
-
-    // Get operating status
-    let status = await config.flightSuretyData.isOperational.call();
-    assert.equal(status, true, "Incorrect initial operating status value");
-
-  });
+    var config;
+    before('setup contract', async () => {
+      config = await Test.Config(accounts);
+      await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
+    });
+  
+    /****************************************************************************************/
+    /* Operations and Settings                                                              */
+    /****************************************************************************************/
+  
+    it(`(multiparty) has correct initial isOperational() value`, async function () {
+  
+      // Get operating status
+      let status = await config.flightSuretyData.isOperational.call();
+      assert.equal(status, true, "Incorrect initial operating status value");
+  
+    });
 
   it(`(multiparty) can block access to setOperatingStatus() for non-Contract Owner account`, async function () {
 
@@ -71,24 +69,57 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
-  it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
-    
+  it('(airline) should be able to fund an airline and ensure it is properly recorded in FlightSuretyData', async () => {
     // ARRANGE
-    let newAirline = accounts[2];
+    let airlineToFund = accounts[2];
+    let fundingAmount = web3.utils.toWei("10", "ether"); // Convert 10 ether to wei
 
     // ACT
     try {
-        await config.flightSuretyApp.registerAirline(newAirline, {from: config.firstAirline});
+        // Fund the airline using the App contract
+        const result = await config.flightSuretyApp.fund({ from: airlineToFund, value: fundingAmount });
+
+        //LOG statements before calling fund function
+        console.log("Caller is authorized:", isAuthorizedCaller());
+        
+        // Check if the airline is properly funded in the Data contract
+        let isAirlineFunded = await config.flightSuretyData.isAirlineFunded.call(airlineToFund);
+
+        // Additional logging for debugging
+        console.log("Is Airline Funded?", isAirlineFunded);
+
+        // Get the events emitted during the transaction
+        const events = result.logs;
+
+        // Declare and Initialize a variable for event
+        let eventEmitted = false;
+
+        // Log all emitted events for debugging
+        console.log("Events emitted during test:", events);
+
+        // Check if the AccountFunded event was emitted
+        events.forEach(event => {
+            console.log("Event name:", event.event); // Log the event name for debugging
+            if (event.event === 'AccountFunded') {
+                // Add any additional conditions you need to check for the event
+                eventEmitted = true;
+            }
+        });
+
+        // Log the result for debugging
+        console.log("Transaction result:", result);
+
+        // Assert if the event was emitted
+        assert.equal(eventEmitted, true, 'AccountFunded event should be emitted');
+
+        // ASSERT
+        assert.equal(isAirlineFunded, true, "Airline should be properly funded in FlightSuretyData");
+    } catch (e) {
+        // Log the caught error for debugging
+        console.error("Caught error:", e.message);
+        assert.fail("Unexpected error during funding");
     }
-    catch(e) {
+});
 
-    }
-    let result = await config.flightSuretyData.isAirline.call(newAirline); 
-
-    // ASSERT
-    assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
-
-  });
- 
 
 });

@@ -56,13 +56,9 @@ contract FlightSuretyData {
     */
     constructor
                                 (
-                                    address _firstAirline
-                                ) 
-                                public 
+                                )
     {
         contractOwner = msg.sender;
-        authorizeCaller(msg.sender);
-        registerFirstAirline(_firstAirline);
     }
 
     // events
@@ -444,6 +440,9 @@ contract FlightSuretyData {
     *
     */   
     function fund(address _caller) external payable isAuthorized {
+        require(isAuthorizedCaller(), "Caller is not authorized");
+        
+        (isAuthorizedCaller(), "Caller is not authorized");
         require(msg.value >= 10 ether, "You should fund at least 10 ether");
         airlines[_caller].hasFunded = true;
         emit AccountFunded(_caller);
