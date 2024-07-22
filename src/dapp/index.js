@@ -8,92 +8,102 @@ import './flightsurety.css';
 
     let result = null;
 
-    let STATUS_CODES = [{
-        // Label - unknown
-        "label": "STATUS_CODE_UNKNOWN",
-        "code": 0
-    }, {
-        // Label - on time
-        "label": "STATUS_CODE_ON_TIME",
-        "code": 10
-    }, {
-        // Label - airline late
-        "label": "STATUS_CODE_LATE_AIRLINE",
-        "code": 20
-    }, {
-        // Label - weather caused lateness
-        "label": "STATUS_CODE_LATE_WEATHER",
-        "code": 30
-    }, {
-        // Label - technical caused lateness
-        "label": "STATUS_CODE_LATE_TECHNICAL",
-        "code": 40
-    }, {
-        // Label - other reason for lateness (nonairline)
-        "label": "STATUS_CODE_LATE_OTHER",
-        "code": 50
-    }];
-
     let contract = new Contract('localhost', () => {
 
         // Read transaction
         contract.isOperational((error, result) => {
-            console.log(error,result);
-            
+            console.log(error, result);
+            let selectFlight = DOM.elid('selectFlight');
+            contract.flights.forEach(flight => {
+                addFlightOption(flight, selectFlight);
+            });
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
-        
-        // Register flights (esp. a new one) - modeled after the one below to act similarly
-        DOM.elid('register-flight').addEventListener('click', () => {
-            let flight = DOM.elid('flight-number').value;
-            // Write transaction
-            contract.registerFlight(flight, (error, result) => {
-                display('Flights', 'Register Flight', [ { label: 'Registered Flight', error: error, value: result.flight + ' ' + result.timestamp} ]);
-            });
-        })
+
+        contract.flightSuretyData.events.airlineFunded({
+            fromBlock: "latest"
+        }, function (error, result) {
+            if (error) {
+                console.log(error)
+            } else {
+                display('Airline Funded', 'Airline funded by the Airline', [ { label: 'Airline Funded', error: error, value: `Airline ${result.returnValues.airlineAddress} got funded`} ]);
+                // alert();
+            }
+        });
+
+        contract.flightSuretyData.events.insuranceClaimed({
+            fromBlock: "latest"
+        }, function (error, result) {
+            if (error) {
+                console.log(error)
+            } else {
+                display('Claim Insurance', 'Insurance claimed by passenger', [ { label: 'Insurance Claimed', error: error, value: `Insurance claimed by ${result.returnValues.passenger}. An amount of ${result.returnValues.amountCreditedToPassenger} WEI has been added to his wallet for ${result.returnValues.flight} at ${new Date(result.returnValues.timestamp * 1000)}`} ]);
+            }
+        });
+
+        contract.flightSuretyData.events.amountWithdrawn({
+            fromBlock: "latest"
+        }, function (error, result) {
+            if (error) {
+                console.log(error)
+            } else {
+                display('Withdraw Amount', 'Withdraw amount to wallet', [ { label: 'Amount withdrawn', error: error, value: `Amount ${result.returnValues.amount} withdrawn to ${result.returnValues.senderAddress} at ${new Date()}`} ]);
+            }
+        });
 
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
             let flight = DOM.elid('flight-number').value;
+            DOM.elid('flight-number').value = "";
             // Write transaction
             contract.fetchFlightStatus(flight, (error, result) => {
-                display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
+                let selectFlight = DOM.elid('selectFlight');
+                addFlightOption(result, selectFlight);
+                display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: `Flight ${result.flight} scheduled at ${new Date(result.timestamp * 1000)}`} ]);
             });
-        })
+        });
 
-        // Buy insurance - modeled after the one above to act similarly
-        DOM.elid('buy-insurance').addEventListener('click', () => {
-            let insuranceValue = DOM.elid('insurance-value').value;
-            // Write transaction
-            contract.buyInsurance(flight, insuranceValue, (error, result) => {
-                display('Passenger', 'Buy insurance', [ { label: 'Transaction good', error: error, value: result} ]);
-            });
-        })
+        DOM.elid('buyInsurance').addEventListener('click', () => {
+            let selectedFlightElement = document.getElementById("selectFlight");
+            let selectedFlightValue = selectedFlightElement.options[selectedFlightElement.selectedIndex].value;
+            let insuranceAmount = DOM.elid('insuranceAmount').value;
+            if(selectedFlightValue === "Select") {
+                alert("Please select the flight and departure time");
+            } else {
+                DOM.elid('insuranceAmount').value = "";
+                selectedFlightValue = JSON.parse(selectedFlightValue);
+                contract.buyInsurance(selectedFlightValue, insuranceAmount, (error, result) => {
+                    if(error) {
+                        alert(error);
+                    }
+                    display('Buy Insurance', 'Insurance purchased by the passenger', [ { label: 'Insurance Purchased', error: error, value: `Insurance purchased by ${result.passenger} at ${result.insuranceAmount} ETH for flight ${result.flight} of airline ${result.airline} scheduled at ${new Date(result.timestamp * 1000)}`} ]);
+                });
+            }
+        });
 
-        // Withdraw Credits - modeled after the one above to act similarly
-        DOM.elid('withdraw-credits').addEventListener('click', () => {
-            // let insuranceValue = DOM.elid('insurance-value').value;
+        DOM.elid('withdrawFund').addEventListener('click', () => {
+            let walletAddress = DOM.elid('withdrawalAddress').value;
             // Write transaction
-            contract.withdrawCredits((error, result) => {
-                display('Passenger', 'Withdraw your creidts', [ { label: 'Transaction good', error: error, value: result} ]);
+            contract.withdrawAmount(walletAddress, (error, result) => {
+                if(error) {
+                    alert(error);
+                }
             });
-        })
-    
+        });
+
     });
-    
+
 
 })();
 
-function displayList(flight, parentEl) {
-    console.log(flight);
-    console.log(parentEl);
-    let el = document.createElement("option");
-    el.text = `${flight.flight} - ${new Date((flight.timestamp))}`;
-    el.value = JSON.stringify(flight);
-    parentEl.add(el);
+function addFlightOption(flight, selectComponent) {
+    let option = document.createElement("option");
+    option.text =  `Flight ${flight.flight} scheduled at ${new Date(flight.timestamp)}`;
+    option.value = JSON.stringify(flight);
+    selectComponent.add(option);
 }
 
-function display(title, description, results, customClass = null) {
+function display(title, description, results) {
     let displayDiv = DOM.elid("display-wrapper");
     let section = DOM.section();
     section.appendChild(DOM.h2(title));
@@ -107,9 +117,3 @@ function display(title, description, results, customClass = null) {
     displayDiv.append(section);
 
 }
-
-
-
-
-
-
